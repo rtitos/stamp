@@ -170,8 +170,46 @@
 #  define TM_PRINT2                     printf
 #  define TM_PRINT3                     printf
 
-#  define P_MEMORY_STARTUP(numThread)   /* nothing */
-#  define P_MEMORY_SHUTDOWN()           /* nothing */
+// 3GB of total mem available in simulated system, of which 2,75
+// allocated in thread local pools by default unless a "scale down
+// factor" is specified
+#define MAIN_MEMORY_SIZE_BYTES (3*(1L<<30))
+
+#define P_MEMORY_STARTUP(numThread)                                     \
+    {                                                                   \
+        bool_t status;                                                  \
+        status = memory_init((numThread),                               \
+                             ((MAIN_MEMORY_SIZE_BYTES -256*(1L<<20))/ numThread), \
+                             2);                                        \
+        assert(status);                                                 \
+    }
+
+// Some benchmarks have already malloc'ed quite a lot (e.g. vacation) so
+// memory_init fails if we try to allocate MAIN_MEMORY_SIZE_BYTES
+#define P_MEMORY_STARTUP_FACTOR(numThread, factor)                      \
+    {                                                                   \
+        bool_t status;                                                  \
+        status = memory_init((numThread),                               \
+                             ((MAIN_MEMORY_SIZE_BYTES >> factor) / numThread), \
+                             2);                                        \
+        assert(status);                                                 \
+    }
+
+// Allocate most of the memory to the master thread (required by ssca2)
+
+#define P_MEMORY_STARTUP_MASTER(numThread)     \
+    {                                                           \
+        bool_t status;                                          \
+        status = memory_init_master((numThread),                        \
+                                    MAIN_MEMORY_SIZE_BYTES,             \
+                                    2);                                 \
+        assert(status);                                                 \
+    }
+
+#  define P_MEMORY_SHUTDOWN()           memory_destroy()
+
+//#  define P_MEMORY_STARTUP(numThread)   /* nothing */
+//#  define P_MEMORY_SHUTDOWN()           /* nothing */
 
 #endif /* !SIMULATOR */
 
@@ -272,7 +310,7 @@
  * =============================================================================
  */
 
-#ifdef HTM
+#ifdef HTM_DEFAULT
 
 #  ifndef SIMULATOR
 #    error HTM requries SIMULATOR
@@ -324,6 +362,95 @@
 #    define TM_EARLY_RELEASE(var)         TM_Release(&(var))
 
 #  endif /* !OTM */
+
+#elif defined(HTM)
+
+#include <stdlib.h>
+
+#  include <assert.h>
+#  include "memory.h"
+#  include "thread.h"
+#  include "types.h"
+#include "abort_handlers.h"
+#include "env_globals.h"
+#if ENABLE_M5_TRIGGER
+#include "include/gem5/m5ops.h"
+#include "util/m5/src/m5_mmap.h"
+#endif
+
+extern _tm_thread_context_t *thread_contexts;
+
+#  define TM_ARGDECL           /* none */
+#  define TM_ARGDECL_ALONE     /* none */
+#  define TM_ARGDECL_END       /* none */
+#  define TM_ARG               /* none */
+#  define TM_ARG_ALONE         /* none */
+#  define TM_ARG_END           /* none */
+#  define TM_NO_ARG            /* none */
+#  define TM_NO_ARG_ALONE      /* none */
+#  define TM_NO_ARG_END        /* none */
+#  define TM_CONSTRUCTOR_ARG   /* none */
+#  define TM_THREAD_ARGDECL    /* none */
+#  define TM_MEMBERDECL        /* none */
+#  define TM_MEMBER_INIT()     /* nothing */
+#  define TM_MEMBER_DISABLE()  /* nothing */
+#  define TM_CALLABLE                   /* nothing */
+#  define TM_PREFETCH /*nothing*/
+
+#define UNUSED(expr)  { (void)(expr); }
+
+#  define TM_STARTUP(numThreads)  { \
+    initGlobals(numThreads);        \
+    }
+
+#  define TM_SHUTDOWN() { \
+    deleteGlobals();      \
+    }
+
+#  define TM_THREAD_ENTER()                                             \
+    _tm_thread_context_t *_tm_thread_context = &thread_contexts[thread_getId()]; \
+    UNUSED(_tm_thread_context)
+
+#  define TM_THREAD_EXIT()    /* nothing */
+
+#  define TM_EARLY_RELEASE(addr)  panic("Early release not supported ")
+
+
+#if ENABLE_M5_TRIGGER
+#  define SIM_WORK_BEGIN()  m5_work_begin(0,0)
+#  define SIM_WORK_END()    m5_work_end(0,0)
+#else
+#  define SIM_WORK_BEGIN()
+#  define SIM_WORK_END()
+#endif
+
+
+#  define THREAD_BARRIER_WAIT()                                         \
+    {                                                                   \
+        thread_barrier_wait();                                          \
+    }
+
+#  define TM_BEGIN(tag)                                         \
+    {								\
+        beginTransaction(tag, _tm_thread_context);              \
+    }
+
+#  define TM_END(tag)                                                   \
+    {                                                                   \
+        commitTransaction(tag, _tm_thread_context);                     \
+    }
+
+// So far STAMP does not pass abort codes to the abort handler
+#  define TM_RESTART()					\
+    {							\
+        abortTransaction(ABORT_CODE_EXPLICIT);          \
+    }
+
+#  define TM_GET_THREAD_ID()                thread_getId()
+#  define TM_MALLOC(size)            memory_get(thread_getId(), size)
+#  define TM_FREE(ptr)               /* TODO: thread local free is non-trivial */
+#  define P_MALLOC(size)             memory_get(thread_getId(), size)
+#  define P_FREE(ptr)                /* TODO: thread local free is non-trivial */
 
 
 /* =============================================================================

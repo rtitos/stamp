@@ -97,6 +97,9 @@ typedef struct memory memory_t;
 bool_t
 memory_init (long numThread, size_t initBlockCapacity, long blockGrowthFactor);
 
+bool_t
+memory_init_master (long numThread, long totalBlockCapacity, long blockGrowthFactor);
+
 
 /* =============================================================================
  * memory_destroy

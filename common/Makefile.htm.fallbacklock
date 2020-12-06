@@ -1,0 +1,20 @@
+# ==============================================================================
+#
+# Makefile.htm.fallbacklock
+#
+# ==============================================================================
+
+include ../common/Defines.common.mk
+include ./Defines.common.mk
+
+SUFFIX=.htm.fallbacklock
+HANDLER = -DHANDLER_FALLBACKLOCK
+
+include ../common/Makefile.htm.common
+
+
+# ==============================================================================
+#
+# End of Makefile.htm.fallbacklock
+#
+# ==============================================================================

@@ -72,6 +72,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "memory.h"
 #include "types.h"
 
@@ -83,6 +84,10 @@
 #  undef TRUE
 #endif
 
+// Malloc'ed data is always aligned to 16-byte boundaries
+#define MALLOC_ALIGMENT_BITMASK (0xF)
+#define MALLOC_ALIGMENT_BYTES (MALLOC_ALIGMENT_BITMASK + 1)
+#define MALLOC_ALIGMENT_OFFSET(val) (((unsigned long) val) & MALLOC_ALIGMENT_BITMASK)
 
 #define PADDING_SIZE 8
 typedef struct block {
@@ -243,6 +248,47 @@ memory_init (long numThread, size_t initBlockCapacity, long blockGrowthFactor)
 }
 
 
+#define P_MEMORY_STARTUP_MASTER_RATIO (0.9L)
+
+/* Like memory_init, but it allocates half the total memory to the
+   master thread instead of fairly split amongst all threads.
+ */
+bool_t
+memory_init_master (long numThread, long totalBlockCapacity, long blockGrowthFactor)
+{
+    long i;
+
+    assert(numThread > 0);
+
+    global_memoryPtr = (memory_t*)malloc(sizeof(memory_t));
+    if (global_memoryPtr == NULL) {
+        return FALSE;
+    }
+
+    global_memoryPtr->pools = (pool_t**)malloc(numThread * sizeof(pool_t*));
+    if (global_memoryPtr->pools == NULL) {
+        return FALSE;
+    }
+
+    // Allocate 90% the total memory to the master thread (tid 0)
+    global_memoryPtr->pools[0] = allocPool(totalBlockCapacity*P_MEMORY_STARTUP_MASTER_RATIO, blockGrowthFactor);
+    if (global_memoryPtr->pools[0] == NULL) {
+        return FALSE;
+    }
+    // Allocate the remaining 10% in same sized chunks to each of the remaining threads
+    for (i = 1; i < numThread; i++) {
+        global_memoryPtr->pools[i] = allocPool(totalBlockCapacity*(1.0-P_MEMORY_STARTUP_MASTER_RATIO)/numThread, blockGrowthFactor);
+        if (global_memoryPtr->pools[i] == NULL) {
+            return FALSE;
+        }
+    }
+
+    global_memoryPtr->numThread = numThread;
+
+    return TRUE;
+}
+
+
 /* =============================================================================
  * memory_destroy
  * =============================================================================
@@ -319,13 +365,21 @@ getMemoryFromPool (pool_t* poolPtr, size_t numByte)
     block_t* blockPtr = poolPtr->blocksPtr;
 
     if ((blockPtr->size + numByte) > blockPtr->capacity) {
-#ifdef SIMULATOR
+        /* Avoid growing memory pool during benchmark execution,
+           instead use a larger initBlockCapacity (large input in
+           yada requires 2.6GB of memory) */
+        fprintf(stderr, "Out of memory when running in simulator! "
+                "Increase value passed to memory_init \n");
+        fprintf(stderr, "Block capacity: %ld, current size: %ld, "
+                "bytes requested: %ld \n", blockPtr->capacity,
+                blockPtr->size, numByte);
+        fflush(stderr);
+
         assert(0);
-#endif
-        blockPtr = addBlockToPool(poolPtr, numByte);
-        if (blockPtr == NULL) {
-            return NULL;
-        }
+    }
+    blockPtr = addBlockToPool(poolPtr, numByte);
+    if (blockPtr == NULL) {
+        return NULL;
     }
 
     return getMemoryFromBlock(blockPtr, numByte);
@@ -342,18 +396,17 @@ memory_get (long threadId, size_t numByte)
 {
     pool_t* poolPtr;
     void* dataPtr;
-    size_t addr;
-    size_t misalignment;
 
     poolPtr = global_memoryPtr->pools[threadId];
-    dataPtr = getMemoryFromPool(poolPtr, (numByte + 7)); /* +7 for alignment */
-
-    /* Fix alignment for 64 bit */
-    addr = (size_t)dataPtr;
-    misalignment = addr % 8;
-    if (misalignment) {
-        addr += (8 - misalignment);
-        dataPtr = (void*)addr;
+    dataPtr = getMemoryFromPool(poolPtr, numByte);
+    assert(MALLOC_ALIGMENT_OFFSET(dataPtr) == 0);
+    // Fix alignment for next call
+    size_t numByteOffset = MALLOC_ALIGMENT_OFFSET(numByte);
+    assert(numByteOffset <  MALLOC_ALIGMENT_BYTES);
+    if (numByteOffset) {
+        size_t numExtraBytes = MALLOC_ALIGMENT_BYTES - numByteOffset;
+        void* wastePtr = getMemoryFromPool(poolPtr, numExtraBytes);
+        assert(MALLOC_ALIGMENT_OFFSET(wastePtr) + numExtraBytes == MALLOC_ALIGMENT_BYTES);
     }
 
     return dataPtr;

@@ -194,11 +194,12 @@ processPackets (void* argPtr)
     vector_t* errorVectorPtr = errorVectors[threadId];
 
     while (1) {
+        SIM_WORK_BEGIN();
 
         char* bytes;
-        TM_BEGIN();
+        TM_BEGIN(0);
         bytes = TMSTREAM_GETPACKET(streamPtr);
-        TM_END();
+        TM_END(0);
         if (!bytes) {
             break;
         }
@@ -207,11 +208,11 @@ processPackets (void* argPtr)
         long flowId = packetPtr->flowId;
 
         error_t error;
-        TM_BEGIN();
+        TM_BEGIN(1);
         error = TMDECODER_PROCESS(decoderPtr,
                                   bytes,
                                   (PACKET_HEADER_LENGTH + packetPtr->length));
-        TM_END();
+        TM_END(1);
         if (error) {
             /*
              * Currently, stream_generate() does not create these errors.
@@ -223,9 +224,9 @@ processPackets (void* argPtr)
 
         char* data;
         long decodedFlowId;
-        TM_BEGIN();
+        TM_BEGIN(2);
         data = TMDECODER_GETCOMPLETE(decoderPtr, &decodedFlowId);
-        TM_END();
+        TM_END(2);
         if (data) {
             error_t error = PDETECTOR_PROCESS(detectorPtr, data);
             P_FREE(data);
@@ -317,6 +318,7 @@ MAIN(argc, argv)
     thread_start(processPackets, (void*)&arg);
 #endif
     GOTO_REAL();
+    SIM_WORK_END();
     TIMER_T stopTime;
     TIMER_READ(stopTime);
     printf("Elapsed time    = %f seconds\n", TIMER_DIFF_SECONDS(startTime, stopTime));

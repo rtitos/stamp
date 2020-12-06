@@ -1,0 +1,48 @@
+#==============================================================================
+#
+# Makefile.htm.common
+#
+# ==============================================================================
+
+
+# ==============================================================================
+# Variables
+# ==============================================================================
+
+CFLAGS   += -DHTM -DSET_AFFINITY -fgnu-tm
+CPPFLAGS := $(CFLAGS)
+
+LDFLAGS += -L$(HANDLERS)
+LIBS     += -laborthandlers -lpthread
+
+BINARY_FILENAME = $(PROG)$(SUFFIX)
+
+# ==============================================================================
+# Rules
+# ==============================================================================
+
+.PHONY: default
+default: $(BINARY_FILENAME)
+
+.PHONY: clean
+clean:
+	$(RM) $(OBJS) $(BINARY_FILENAME) $(OUTPUT)
+	make -C $(HANDLERS) clean
+
+.PHONY: clean_objs
+clean_objs:
+	$(RM) $(OBJS) $(OUTPUT)
+
+$(BINARY_FILENAME): $(OBJS)
+	cd $(HANDLERS) && make HANDLER='$(HANDLER)' -f Makefile
+	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(BINARY_FILENAME)
+
+include ../common/Makefile.common
+
+
+
+# ==============================================================================
+#
+# End of Makefile.htm.common
+#
+# ==============================================================================
