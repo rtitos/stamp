@@ -189,8 +189,6 @@ parseArgs (long argc, char* const argv[])
  */
 MAIN(argc, argv)
 {
-    GOTO_REAL();
-
     /*
      * Initialization
      */

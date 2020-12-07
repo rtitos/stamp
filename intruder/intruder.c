@@ -251,8 +251,6 @@ processPackets (void* argPtr)
  */
 MAIN(argc, argv)
 {
-    GOTO_REAL();
-
     /*
      * Initialization
      */
@@ -318,7 +316,7 @@ MAIN(argc, argv)
     thread_start(processPackets, (void*)&arg);
 #endif
     GOTO_REAL();
-    SIM_WORK_END();
+
     TIMER_T stopTime;
     TIMER_READ(stopTime);
     printf("Elapsed time    = %f seconds\n", TIMER_DIFF_SECONDS(startTime, stopTime));

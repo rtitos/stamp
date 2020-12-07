@@ -158,8 +158,14 @@
 #  define MAIN(argc, argv)              int main (int argc, char** argv)
 #  define MAIN_RETURN(val)              return val
 
+#if ENABLE_M5_TRIGGER
+#  define GOTO_SIM()                    m5_work_begin(0,0);
+#  define GOTO_REAL()                   m5_work_end(0,0);
+#else
 #  define GOTO_SIM()                    /* nothing */
 #  define GOTO_REAL()                   /* nothing */
+#endif
+
 #  define IS_IN_SIM()                   (0)
 
 #  define SIM_GET_NUM_CPU(var)          /* nothing */

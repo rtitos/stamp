@@ -82,8 +82,6 @@
 
 MAIN(argc, argv)
 {
-    GOTO_REAL();
-
     /*
      * Tuple for Scalable Data Generation
      * stores startVertex, endVertex, long weight and other info

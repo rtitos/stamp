@@ -162,8 +162,6 @@ MAIN(argc, argv)
     float   threshold = 0.001;
     int     opt;
 
-    GOTO_REAL();
-
     line = (char*)malloc(MAX_LINE_LENGTH); /* reserve memory line */
 
     nthreads = 1;

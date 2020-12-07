@@ -230,8 +230,6 @@ score (net_t* netPtr, adtree_t* adtreePtr)
  */
 MAIN(argc, argv)
 {
-    GOTO_REAL();
-
     /*
      * Initialization
      */

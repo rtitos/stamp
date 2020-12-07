@@ -9,7 +9,8 @@
 # Variables
 # ==============================================================================
 
-CFLAGS   += -DHTM -DSET_AFFINITY -fgnu-tm
+CFLAGS   += -DHTM -fgnu-tm
+CFLAGS   += -DENABLE_M5_TRIGGER
 CPPFLAGS := $(CFLAGS)
 
 LDFLAGS += -L$(HANDLERS)

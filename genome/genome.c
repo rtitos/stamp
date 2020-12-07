@@ -184,8 +184,6 @@ MAIN (argc,argv)
     TIMER_T start;
     TIMER_T stop;
 
-    GOTO_REAL();
-
     /* Initialization */
     parseArgs(argc, (char** const)argv);
     SIM_GET_NUM_CPU(global_params[PARAM_THREAD]);

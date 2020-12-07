@@ -5,7 +5,7 @@
 # ==============================================================================
 
 #ARCH = { aarch64 , x86}
-ARCH      := x86
+ARCH      := aarch64
 
 # Need symlink to gem5 in STAMP root directory to locate handlers/m5 objects
 GEM5_ROOT := $(realpath ../gem5)
@@ -32,7 +32,7 @@ endif
 
 CC       := $(GCC_PREFIX)gcc
 CFLAGS   +=  -Wall -pthread
-CFLAGS   += -O0 -g3
+CFLAGS   += -O3
 CFLAGS   += -I$(LIB)
 CFLAGS   += -I$(HANDLERS)
 CFLAGS   += -I$(GEM5_ROOT)
