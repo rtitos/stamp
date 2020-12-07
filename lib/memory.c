@@ -376,12 +376,11 @@ getMemoryFromPool (pool_t* poolPtr, size_t numByte)
         fflush(stderr);
 
         assert(0);
+        blockPtr = addBlockToPool(poolPtr, numByte);
+        if (blockPtr == NULL) {
+            return NULL;
+        }
     }
-    blockPtr = addBlockToPool(poolPtr, numByte);
-    if (blockPtr == NULL) {
-        return NULL;
-    }
-
     return getMemoryFromBlock(blockPtr, numByte);
 }
 

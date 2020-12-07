@@ -32,7 +32,7 @@ endif
 
 CC       := $(GCC_PREFIX)gcc
 CFLAGS   +=  -Wall -pthread
-CFLAGS   += -O3
+CFLAGS   += -O0 -g3
 CFLAGS   += -I$(LIB)
 CFLAGS   += -I$(HANDLERS)
 CFLAGS   += -I$(GEM5_ROOT)
