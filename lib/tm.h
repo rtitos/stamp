@@ -159,8 +159,8 @@
 #  define MAIN_RETURN(val)              return val
 
 #if ENABLE_M5_TRIGGER
-#  define GOTO_SIM()                    m5_work_begin(0,0);
-#  define GOTO_REAL()                   m5_work_end(0,0);
+#  define GOTO_SIM()                    m5_work_begin_addr(0,0);
+#  define GOTO_REAL()                   m5_work_end_addr(0,0);
 #else
 #  define GOTO_SIM()                    /* nothing */
 #  define GOTO_REAL()                   /* nothing */
@@ -176,10 +176,10 @@
 #  define TM_PRINT2                     printf
 #  define TM_PRINT3                     printf
 
-// 3GB of total mem available in simulated system, of which 2,75
+// 2GB of total mem available in simulated system, of which 1,75
 // allocated in thread local pools by default unless a "scale down
 // factor" is specified
-#define MAIN_MEMORY_SIZE_BYTES (3*(1L<<30))
+#define MAIN_MEMORY_SIZE_BYTES (2*(1L<<30))
 
 #define P_MEMORY_STARTUP(numThread)                                     \
     {                                                                   \
@@ -380,7 +380,7 @@
 #include "abort_handlers.h"
 #include "env_globals.h"
 #if ENABLE_M5_TRIGGER
-#include "include/gem5/m5ops.h"
+#include "include/gem5/m5ops_addr.h"
 #include "util/m5/src/m5_mmap.h"
 #endif
 
@@ -423,8 +423,8 @@ extern _tm_thread_context_t *thread_contexts;
 
 
 #if ENABLE_M5_TRIGGER
-#  define SIM_WORK_BEGIN()  m5_work_begin(0,0)
-#  define SIM_WORK_END()    m5_work_end(0,0)
+#  define SIM_WORK_BEGIN()  m5_work_begin_addr(0,0)
+#  define SIM_WORK_END()    m5_work_end_addr(0,0)
 #else
 #  define SIM_WORK_BEGIN()
 #  define SIM_WORK_END()

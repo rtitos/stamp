@@ -14,7 +14,7 @@ CFLAGS   += -DENABLE_M5_TRIGGER
 CPPFLAGS := $(CFLAGS)
 
 LDFLAGS += -L$(HANDLERS)
-LIBS     += -laborthandlers -lpthread
+LIBS     += -laborthandlers -lpthread -lm5
 
 BINARY_FILENAME = $(PROG)$(SUFFIX)
 

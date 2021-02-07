@@ -5,11 +5,15 @@
 # ==============================================================================
 
 #ARCH = { aarch64 , x86}
-ARCH      := aarch64
+ARCH      := x86
 
 # Need symlink to gem5 in STAMP root directory to locate handlers/m5 objects
 GEM5_ROOT := $(realpath ../gem5)
 HANDLERS  := $(GEM5_ROOT)/gem5_path/benchmarks/benchmarks-htm/libs/handlers
+
+ifeq ($(GEM5_ROOT),)
+$(error GEM5_ROOT not set)
+endif
 
 ifndef ARCH
 $(error ARCH not set)
@@ -40,6 +44,9 @@ CPP      := $(GCC_PREFIX)g++
 LD       := $(GCC_PREFIX)g++
 LIBS     += -lpthread
 LDFLAGS  += -static
+
+CFLAGS += -I$(GEM5_ROOT)/include
+LDFLAGS += -L$(GEM5_ROOT)/util/m5/build/$(ARCH)/out
 
 
 # Remove these files when doing clean
