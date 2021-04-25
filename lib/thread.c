@@ -145,9 +145,21 @@ thread_startup (long numThread)
     global_threads = (THREAD_T*)malloc(numThread * sizeof(THREAD_T));
     assert(global_threads);
 
+    /* Set of all used cpus*/
+    cpu_set_t cpuset;
+#if defined (ENABLE_PTHREAD_SET_AFFINITY)
+        /* Set up cpu affinity for currently running thread */
+        pthread_t thread = pthread_self();
+        CPU_ZERO(&cpuset);
+        CPU_SET(0, &cpuset);
+        pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+#endif
     /* Set up pool */
     THREAD_ATTR_INIT(global_threadAttr);
     for (i = 1; i < numThread; i++) {
+#if defined (ENABLE_PTHREAD_SET_AFFINITY)
+            THREAD_SET_AFFINITY(cpuset, i, global_threadAttr);
+#endif
         THREAD_CREATE(global_threads[i],
                       global_threadAttr,
                       &threadWait,
