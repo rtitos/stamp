@@ -176,6 +176,7 @@ client_run (void* argPtr)
     long i;
 
     for (i = 0; i < numOperation; i++) {
+        SIM_WORK_BEGIN();
 
         long r = random_generate(randomPtr) % 100;
         action_t action = selectAction(r, percentUser);
@@ -193,7 +194,7 @@ client_run (void* argPtr)
                     ids[n] = (random_generate(randomPtr) % queryRange) + 1;
                 }
                 bool_t isFound = FALSE;
-                TM_BEGIN();
+                TM_BEGIN(0);
                 for (n = 0; n < numQuery; n++) {
                     long t = types[n];
                     long id = ids[n];
@@ -238,18 +239,18 @@ client_run (void* argPtr)
                     MANAGER_RESERVE_ROOM(managerPtr,
                                          customerId, maxIds[RESERVATION_ROOM]);
                 }
-                TM_END();
+                TM_END(0);
                 break;
             }
 
             case ACTION_DELETE_CUSTOMER: {
                 long customerId = random_generate(randomPtr) % queryRange + 1;
-                TM_BEGIN();
+                TM_BEGIN(1);
                 long bill = MANAGER_QUERY_CUSTOMER_BILL(managerPtr, customerId);
                 if (bill >= 0) {
                     MANAGER_DELETE_CUSTOMER(managerPtr, customerId);
                 }
-                TM_END();
+                TM_END(1);
                 break;
             }
 
@@ -264,7 +265,7 @@ client_run (void* argPtr)
                         prices[n] = ((random_generate(randomPtr) % 5) * 10) + 50;
                     }
                 }
-                TM_BEGIN();
+                TM_BEGIN(2);
                 for (n = 0; n < numUpdate; n++) {
                     long t = types[n];
                     long id = ids[n];
@@ -300,7 +301,7 @@ client_run (void* argPtr)
                         }
                     }
                 }
-                TM_END();
+                TM_END(2);
                 break;
             }
 
