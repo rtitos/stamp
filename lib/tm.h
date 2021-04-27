@@ -449,7 +449,7 @@ extern _tm_thread_context_t *thread_contexts;
 // So far STAMP does not pass abort codes to the abort handler
 #  define TM_RESTART()					\
     {							\
-        abortTransaction(ABORT_CODE_EXPLICIT);          \
+        cancelTransaction(0);                            \
     }
 
 #  define TM_GET_THREAD_ID()                thread_getId()
