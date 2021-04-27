@@ -808,11 +808,11 @@ genScalData (void* argPtr)
         long t1 = PRANDOM_GENERATE(stream);
         long t = i + t1 % (TOT_VERTICES - i);
         if (t != i) {
-            TM_BEGIN();
+            TM_BEGIN(5);
             long t2 = (long)TM_SHARED_READ(permV[t]);
             TM_SHARED_WRITE(permV[t], TM_SHARED_READ(permV[i]));
             TM_SHARED_WRITE(permV[i], t2);
-            TM_END();
+            TM_END(5);
         }
     }
 
@@ -1096,10 +1096,10 @@ genScalData (void* argPtr)
         }
     }
 
-    TM_BEGIN();
+    TM_BEGIN(6);
     TM_SHARED_WRITE(global_edgeNum,
                     ((long)TM_SHARED_READ(global_edgeNum) + i_edgePtr));
-    TM_END();
+    TM_END(6);
 
     thread_barrier_wait();
 
@@ -1314,10 +1314,10 @@ genScalData (void* argPtr)
         }
     }
 
-    TM_BEGIN();
+    TM_BEGIN(7);
     TM_SHARED_WRITE(global_edgeNum,
                     ((long)TM_SHARED_READ(global_edgeNum) + i_edgePtr));
-    TM_END();
+    TM_END(7);
 
 
     thread_barrier_wait();
@@ -1396,10 +1396,10 @@ genScalData (void* argPtr)
         }
     }
 
-    TM_BEGIN();
+    TM_BEGIN(8);
     TM_SHARED_WRITE(global_numStrWtEdges,
                     ((long)TM_SHARED_READ(global_numStrWtEdges) + numStrWtEdges));
-    TM_END();
+    TM_END(8);
 
     thread_barrier_wait();
 

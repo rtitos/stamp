@@ -119,12 +119,12 @@ getStartLists (void* argPtr)
         }
     }
 
-    TM_BEGIN();
+    TM_BEGIN(9);
     long tmp_maxWeight = (long)TM_SHARED_READ(global_maxWeight);
     if (maxWeight > tmp_maxWeight) {
         TM_SHARED_WRITE(global_maxWeight, maxWeight);
     }
-    TM_END();
+    TM_END(9);
 
     thread_barrier_wait();
 

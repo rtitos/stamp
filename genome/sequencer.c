@@ -287,7 +287,7 @@ sequencer_run (void* argPtr)
     i_stop = numSegment;
 #endif /* !(HTM || STM) */
     for (i = i_start; i < i_stop; i+=CHUNK_STEP1) {
-        TM_BEGIN();
+        TM_BEGIN(0);
         {
             long ii;
             long ii_stop = MIN(i_stop, (i+CHUNK_STEP1));
@@ -298,7 +298,7 @@ sequencer_run (void* argPtr)
                                    segment);
             } /* ii */
         }
-        TM_END();
+        TM_END(0);
     }
 
     thread_barrier_wait();
@@ -366,13 +366,13 @@ sequencer_run (void* argPtr)
             bool_t status;
 
             /* Find an empty constructEntries entry */
-            TM_BEGIN();
+            TM_BEGIN(1);
             while (((void*)TM_SHARED_READ_P(constructEntries[entryIndex].segment)) != NULL) {
                 entryIndex = (entryIndex + 1) % numUniqueSegment; /* look for empty */
             }
             constructEntryPtr = &constructEntries[entryIndex];
             TM_SHARED_WRITE_P(constructEntryPtr->segment, segment);
-            TM_END();
+            TM_END(1);
             entryIndex = (entryIndex + 1) % numUniqueSegment;
 
             /*
@@ -392,11 +392,11 @@ sequencer_run (void* argPtr)
             for (j = 1; j < segmentLength; j++) {
                 startHash = (ulong_t)segment[j-1] +
                             (startHash << 6) + (startHash << 16) - startHash;
-                TM_BEGIN();
+                TM_BEGIN(2);
                 status = TMTABLE_INSERT(startHashToConstructEntryTables[j],
                                         (ulong_t)startHash,
                                         (void*)constructEntryPtr );
-                TM_END();
+                TM_END(2);
                 assert(status);
             }
 
@@ -405,11 +405,11 @@ sequencer_run (void* argPtr)
              */
             startHash = (ulong_t)segment[j-1] +
                         (startHash << 6) + (startHash << 16) - startHash;
-            TM_BEGIN();
+            TM_BEGIN(3);
             status = TMTABLE_INSERT(hashToConstructEntryTable,
                                     (ulong_t)startHash,
                                     (void*)constructEntryPtr);
-            TM_END();
+            TM_END(3);
             assert(status);
         }
     }
@@ -473,7 +473,7 @@ sequencer_run (void* argPtr)
                 long newLength = 0;
 
                 /* endConstructEntryPtr is local except for properties startPtr/endPtr/length */
-                TM_BEGIN();
+                TM_BEGIN(4);
 
                 /* Check if matches */
                 if (TM_SHARED_READ(startConstructEntryPtr->isStart) &&
@@ -511,7 +511,7 @@ sequencer_run (void* argPtr)
                     TM_SHARED_WRITE(endConstructEntry_startPtr->length, newLength);
                 } /* if (matched) */
 
-                TM_END();
+                TM_END(4);
 
                 if (!endInfoEntries[entryIndex].isEnd) { /* if there was a match */
                     break;

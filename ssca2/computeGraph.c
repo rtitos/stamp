@@ -180,11 +180,11 @@ computeGraph (void* argPtr)
         }
     }
 
-    TM_BEGIN();
+    TM_BEGIN(0);
     long tmp_maxNumVertices = (long)TM_SHARED_READ(global_maxNumVertices);
     long new_maxNumVertices = MAX(tmp_maxNumVertices, maxNumVertices) + 1;
     TM_SHARED_WRITE(global_maxNumVertices, new_maxNumVertices);
-    TM_END();
+    TM_END(0);
 
     thread_barrier_wait();
 
@@ -296,12 +296,12 @@ computeGraph (void* argPtr)
 
     thread_barrier_wait();
 
-    TM_BEGIN();
+    TM_BEGIN(1);
     TM_SHARED_WRITE(
         global_outVertexListSize,
         ((long)TM_SHARED_READ(global_outVertexListSize) + outVertexListSize)
     );
-    TM_END();
+    TM_END(1);
 
     thread_barrier_wait();
 
@@ -472,7 +472,7 @@ computeGraph (void* argPtr)
                 }
             }
             if (k == GPtr->outVertexIndex[v]+GPtr->outDegree[v]) {
-                TM_BEGIN();
+                TM_BEGIN(2);
                 /* Add i to the impliedEdgeList of v */
                 long inDegree = (long)TM_SHARED_READ(GPtr->inDegree[v]);
                 TM_SHARED_WRITE(GPtr->inDegree[v], (inDegree + 1));
@@ -493,7 +493,7 @@ computeGraph (void* argPtr)
                     }
                     TM_SHARED_WRITE(a[inDegree % MAX_CLUSTER_SIZE], i);
                 }
-                TM_END();
+                TM_END(2);
             }
         }
     } /* for i */
