@@ -362,7 +362,7 @@ checkTables (manager_t* managerPtr)
     long maxCustomerId = queryRange + 1;
     for (i = 1; i <= maxCustomerId; i++) {
         if (MAP_FIND(customerTablePtr, i)) {
-            if (MAP_REMOVE(customerTablePtr, i)) {
+            if (TMMAP_REMOVE(customerTablePtr, i)) {
                 assert(!MAP_FIND(customerTablePtr, i));
             }
         }
@@ -374,7 +374,7 @@ checkTables (manager_t* managerPtr)
         for (i = 1; i <= numRelation; i++) {
             if (MAP_FIND(tablePtr, i)) {
                 assert(manager_add[t](managerPtr, i, 0, 0)); /* validate entry */
-                if (MAP_REMOVE(tablePtr, i)) {
+                if (TMMAP_REMOVE(tablePtr, i)) {
                     assert(!MAP_REMOVE(tablePtr, i));
                 }
             }
