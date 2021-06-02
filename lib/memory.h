@@ -95,7 +95,7 @@ typedef struct memory memory_t;
  * =============================================================================
  */
 bool_t
-memory_init (long numThread, size_t initBlockCapacity, long blockGrowthFactor);
+memory_init (long numThread, long initBlockCapacity, long blockGrowthFactor);
 
 bool_t
 memory_init_master (long numThread, long totalBlockCapacity, long blockGrowthFactor);
@@ -116,6 +116,14 @@ memory_destroy ();
  */
 void*
 memory_get (long threadId, size_t numByte);
+
+/* =============================================================================
+ * memory_touch
+ * -- Touches memory
+ * =============================================================================
+ */
+void
+memory_touch (long threadId, size_t numBytes);
 
 
 #ifdef __cplusplus

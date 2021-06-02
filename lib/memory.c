@@ -113,6 +113,7 @@ struct memory {
 
 memory_t* global_memoryPtr = 0;
 
+#define PAGE_SIZE (4096UL) // sysconf(_SC_PAGESIZE) doesn't work in simulator
 
 /* =============================================================================
  * allocBlock
@@ -120,7 +121,7 @@ memory_t* global_memoryPtr = 0;
  * =============================================================================
  */
 static block_t*
-allocBlock (size_t capacity)
+allocBlock (long capacity)
 {
     block_t* blockPtr;
 
@@ -161,7 +162,7 @@ freeBlock (block_t* blockPtr)
  * =============================================================================
  */
 static pool_t*
-allocPool (size_t initBlockCapacity, long blockGrowthFactor)
+allocPool (long initBlockCapacity, long blockGrowthFactor)
 {
     pool_t* poolPtr;
 
@@ -219,7 +220,7 @@ freePool (pool_t* poolPtr)
  * =============================================================================
  */
 bool_t
-memory_init (long numThread, size_t initBlockCapacity, long blockGrowthFactor)
+memory_init (long numThread, long initBlockCapacity, long blockGrowthFactor)
 {
     long i;
 
@@ -353,6 +354,37 @@ getMemoryFromBlock (block_t* blockPtr, size_t numByte)
     return (void*)&blockPtr->contents[size];
 }
 
+/* =============================================================================
+ * touchMemoryFromBlock
+ * -- Reserves memory
+ * =============================================================================
+ */
+static void
+touchMemoryFromBlock (block_t* blockPtr, size_t numByte)
+{
+    size_t size = blockPtr->size;
+    size_t capacity = blockPtr->capacity;
+
+    assert((size + numByte) <= capacity);
+
+    unsigned long currentPtr = (unsigned long)&blockPtr->contents[size];
+
+    *((long *)currentPtr) = 0; // Touch current page
+
+    unsigned long nextPageAddr = (currentPtr & ~(PAGE_SIZE-1)) + PAGE_SIZE;
+    if (currentPtr + numByte >= nextPageAddr) {
+        // Also touch next page(s)
+        numByte -= nextPageAddr - currentPtr;
+        while (numByte > 0) {
+            *((long *)nextPageAddr) = 0; // Touch page
+            nextPageAddr += PAGE_SIZE;
+            if (numByte > PAGE_SIZE)
+                numByte -= PAGE_SIZE;
+            else break;
+        }
+    }
+}
+
 
 /* =============================================================================
  * getMemoryFromPool
@@ -409,6 +441,24 @@ memory_get (long threadId, size_t numByte)
     }
 
     return dataPtr;
+}
+
+/* =============================================================================
+ * memory_touch
+ * -- Touch memory
+ * =============================================================================
+ */
+void
+memory_touch (long threadId, size_t numByte)
+{
+    pool_t* poolPtr;
+
+    // Some benchmarks (e.g. kmeans) do not allocate dynamic memory,
+    // thus TM_MEMORY_STARTUP (memory_init) not called from main
+    if (global_memoryPtr == NULL) return;
+    poolPtr = global_memoryPtr->pools[threadId];
+    block_t* blockPtr = poolPtr->blocksPtr;
+    touchMemoryFromBlock(blockPtr, numByte);
 }
 
 
