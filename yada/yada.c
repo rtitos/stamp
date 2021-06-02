@@ -201,6 +201,7 @@ process ()
     assert(regionPtr);
 
     while (1) {
+        SIM_WORK_BEGIN();
 
         element_t* elementPtr;
 
