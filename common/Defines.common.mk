@@ -4,8 +4,8 @@
 #
 # ==============================================================================
 
-#ARCH = { aarch64 , x86}
-ARCH      := x86
+# ARCH must be set before calling make
+#ARCH = { aarch64 , x86, riscv}
 
 # Need symlink to gem5 in STAMP root directory to locate handlers/m5 objects
 GEM5_ROOT := $(realpath ../gem5)
@@ -31,6 +31,10 @@ else ifeq ($(ARCH),x86)
 
 GCC_PREFIX :=
 
+else ifeq ($(ARCH),riscv)
+
+GCC_PREFIX := riscv64-unknown-linux-gnu-
+CFLAGS	+= -fcommon
 endif
 
 

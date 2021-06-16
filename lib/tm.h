@@ -159,8 +159,13 @@
 #  define MAIN_RETURN(val)              return val
 
 #if ENABLE_M5_TRIGGER
+#if defined(CALL_TYPE_IS_DEFAULT)
+#  define GOTO_SIM()                    m5_work_begin(0,0);
+#  define GOTO_REAL()                   m5_work_end(0,0);
+#else
 #  define GOTO_SIM()                    m5_work_begin_addr(0,0);
 #  define GOTO_REAL()                   m5_work_end_addr(0,0);
+#endif
 #else
 #  define GOTO_SIM()                    /* nothing */
 #  define GOTO_REAL()                   /* nothing */
@@ -423,13 +428,19 @@ extern _tm_thread_context_t *thread_contexts;
 
 
 #if ENABLE_M5_TRIGGER
+#if defined(CALL_TYPE_IS_DEFAULT)
+#  define SIM_WORK_BEGIN()  m5_work_begin(0,0)
+#  define SIM_WORK_END()    m5_work_end(0,0)
+#else
 #  define SIM_WORK_BEGIN()  m5_work_begin_addr(0,0)
 #  define SIM_WORK_END()    m5_work_end_addr(0,0)
+#endif
 #else
 #  define SIM_WORK_BEGIN()
 #  define SIM_WORK_END()
 #endif
 
+#define ABORT_CODE_EXPLICIT 65535
 
 #  define THREAD_BARRIER_WAIT()                                         \
     {                                                                   \

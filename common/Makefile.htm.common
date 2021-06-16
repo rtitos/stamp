@@ -11,7 +11,17 @@
 
 CFLAGS   += -DHTM -fgnu-tm
 CFLAGS   += -DENABLE_M5_TRIGGER
-CFLAGS   += -DENABLE_PTHREAD_SET_AFFINITY -D_GNU_SOURCE
+
+ifeq ($(ARCH),riscv)
+# M5 ops call type uses default interface (invalid inst)
+CFLAGS   += -DCALL_TYPE_IS_DEFAULT
+# Build RISCV binaries simulated in SE mode (no sched_affinity)
+else
+CFLAGS   += -DENABLE_PTHREAD_SET_AFFINITY
+endif
+
+CFLAGS   += -D_GNU_SOURCE
+
 CPPFLAGS := $(CFLAGS)
 
 LDFLAGS += -L$(HANDLERS)
