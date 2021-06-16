@@ -287,6 +287,7 @@ sequencer_run (void* argPtr)
     i_stop = numSegment;
 #endif /* !(HTM || STM) */
     for (i = i_start; i < i_stop; i+=CHUNK_STEP1) {
+        SIM_WORK_BEGIN();
         TM_BEGIN(0);
         {
             long ii;
@@ -351,7 +352,7 @@ sequencer_run (void* argPtr)
 #endif /* !(HTM || STM) */
 
     for (i = i_start; i < i_stop; i++) {
-
+        SIM_WORK_BEGIN();
         list_t* chainPtr = uniqueSegmentsPtr->buckets[i];
         list_iter_t it;
         list_iter_reset(&it, chainPtr);
@@ -420,7 +421,6 @@ sequencer_run (void* argPtr)
      * Step 2b: Match ends to starts by using hash-based string comparison.
      */
     for (substringLength = segmentLength-1; substringLength > 0; substringLength--) {
-
         table_t* startHashToConstructEntryTablePtr =
             startHashToConstructEntryTables[substringLength];
         list_t** buckets = startHashToConstructEntryTablePtr->buckets;
@@ -454,6 +454,7 @@ sequencer_run (void* argPtr)
                 continue;
             }
 
+            SIM_WORK_BEGIN();
             /*  ConstructEntries[entryIndex] is local data */
             constructEntry_t* endConstructEntryPtr =
                 &constructEntries[entryIndex];
@@ -547,6 +548,7 @@ sequencer_run (void* argPtr)
                 }
                 /* Continue scanning (do not reset i) */
                 for (j = 0; i < numUniqueSegment; i+=endInfoEntries[i].jumpToNext) {
+                    SIM_WORK_BEGIN();
                     if (endInfoEntries[i].isEnd) {
                         constructEntry_t* constructEntryPtr = &constructEntries[i];
                         char* segment = constructEntryPtr->segment;
@@ -588,6 +590,7 @@ sequencer_run (void* argPtr)
         long sequenceLength = 0;
 
         for (i = 0; i < numUniqueSegment; i++) {
+            SIM_WORK_BEGIN();
             constructEntry_t* constructEntryPtr = &constructEntries[i];
             /* If there are several start segments, we append in arbitrary order  */
             if (constructEntryPtr->isStart) {
