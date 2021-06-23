@@ -160,11 +160,25 @@
 
 #if ENABLE_M5_TRIGGER
 #if defined(CALL_TYPE_IS_DEFAULT)
-#  define GOTO_SIM()                    m5_work_begin(0,0);
-#  define GOTO_REAL()                   m5_work_end(0,0);
+#  define GOTO_SIM()  {                         \
+        m5_work_begin(0,0);                     \
+        m5_reset_stats(0,0);                    \
+    }
+
+#  define GOTO_REAL()  {                      \
+        m5_work_end(0,0);                      \
+        m5_dump_stats(0,0);                    \
+    }
 #else
-#  define GOTO_SIM()                    m5_work_begin_addr(0,0);
-#  define GOTO_REAL()                   m5_work_end_addr(0,0);
+#  define GOTO_SIM()  {                         \
+        m5_work_begin_addr(0,0);                \
+        m5_reset_stats_addr(0,0);               \
+    }
+
+#  define GOTO_REAL()  {                      \
+        m5_work_end_addr(0,0);                 \
+        m5_dump_stats_addr(0,0);               \
+    }
 #endif
 #else
 #  define GOTO_SIM()                    /* nothing */
