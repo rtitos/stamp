@@ -161,6 +161,7 @@
 #if ENABLE_M5_TRIGGER
 #if defined(CALL_TYPE_IS_DEFAULT)
 #  define GOTO_SIM()  {                         \
+        sleep(1);                               \
         m5_work_begin(0,0);                     \
         m5_reset_stats(0,0);                    \
     }
@@ -171,6 +172,7 @@
     }
 #else
 #  define GOTO_SIM()  {                         \
+        sleep(1);                               \
         m5_work_begin_addr(0,0);                \
         m5_reset_stats_addr(0,0);               \
     }
