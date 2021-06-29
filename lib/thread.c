@@ -72,6 +72,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "thread.h"
+#include "tm.h"
 #include "types.h"
 
 static THREAD_LOCAL_T    global_threadId;
@@ -363,7 +364,10 @@ thread_barrier_wait()
 #ifndef SIMULATOR
     long threadId = thread_getId();
 #endif /* !SIMULATOR */
+
+    annotateBarrierRegionBegin();
     THREAD_BARRIER(global_barrierPtr, threadId);
+    annotateBarrierRegionEnd();
 }
 
 
