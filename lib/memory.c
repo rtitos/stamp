@@ -94,6 +94,7 @@ typedef struct block {
     long padding1[PADDING_SIZE];
     size_t size;
     size_t capacity;
+    unsigned long lastTouchedPageAddr;
     char* contents;
     struct block* nextPtr;
     long padding2[PADDING_SIZE];
@@ -138,6 +139,8 @@ allocBlock (long capacity)
     if (blockPtr->contents == NULL) {
         return NULL;
     }
+    blockPtr->contents[0] = 0; // touch
+    blockPtr->lastTouchedPageAddr = (unsigned long)&blockPtr->contents[0];
     blockPtr->nextPtr = NULL;
 
     return blockPtr;
@@ -366,23 +369,28 @@ touchMemoryFromBlock (block_t* blockPtr, size_t numByte)
     size_t capacity = blockPtr->capacity;
 
     assert((size + numByte) <= capacity);
-
     unsigned long currentPtr = (unsigned long)&blockPtr->contents[size];
 
-    *((long *)currentPtr) = 0; // Touch current page
-
-    unsigned long nextPageAddr = (currentPtr & ~(PAGE_SIZE-1)) + PAGE_SIZE;
-    if (currentPtr + numByte >= nextPageAddr) {
-        // Also touch next page(s)
-        numByte -= nextPageAddr - currentPtr;
-        while (numByte > 0) {
-            *((long *)nextPageAddr) = 0; // Touch page
-            nextPageAddr += PAGE_SIZE;
-            if (numByte > PAGE_SIZE)
-                numByte -= PAGE_SIZE;
-            else break;
-        }
+    // If next alloc block falls within already touched region, skip
+    if (currentPtr+numByte < blockPtr->lastTouchedPageAddr) {
+        //printf("Already touched (next block: 0x%lx - 0x%lx)\n", currentPtr, currentPtr+numByte);
+        return;
     }
+
+    // if current points to region not touched, touch current page
+    if (currentPtr >= blockPtr->lastTouchedPageAddr) {
+        *((long *)currentPtr) = 0; // Touch current page
+        blockPtr->lastTouchedPageAddr = currentPtr & ~(PAGE_SIZE-1);
+    }
+    // now touch next pages according to size of next alloc block
+    unsigned long nextPageAddr = (blockPtr->lastTouchedPageAddr & ~(PAGE_SIZE-1));
+    unsigned long endPageAddr = ((currentPtr+numByte) & ~(PAGE_SIZE-1)) + PAGE_SIZE;
+    while (nextPageAddr < endPageAddr) {
+        nextPageAddr += PAGE_SIZE;
+        *((long *)nextPageAddr) = 0; // Touch next page(s)
+        //printf("Touched 0x%#lx\n",nextPageAddr);
+    }
+    blockPtr->lastTouchedPageAddr = nextPageAddr;
 }
 
 
