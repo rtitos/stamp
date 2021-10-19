@@ -8,7 +8,7 @@ include ../common/Defines.common.mk
 include ./Defines.common.mk
 
 SUFFIX=.htm.fallbacklock2phase
-HANDLER = -DHANDLER_FALLBACKLOCK_2PHASE
+HANDLER = -DHANDLER_FALLBACKLOCK -DHANDLER_FALLBACKLOCK_2PHASE
 
 include ../common/Makefile.htm.common
 
