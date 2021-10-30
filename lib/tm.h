@@ -159,20 +159,7 @@
 #  define MAIN_RETURN(val)              return val
 
 #if ENABLE_M5_TRIGGER
-#if defined(CALL_TYPE_IS_DEFAULT)
 #  define GOTO_SIM()  {                         \
-        sleep(1);                               \
-        m5_work_begin(0,0);                     \
-        m5_reset_stats(0,0);                    \
-    }
-
-#  define GOTO_REAL()  {                      \
-        m5_work_end(0,0);                      \
-        m5_dump_stats(0,0);                    \
-    }
-#else
-#  define GOTO_SIM()  {                         \
-        sleep(1);                               \
         m5_work_begin_addr(0,0);                \
         m5_reset_stats_addr(0,0);               \
     }
@@ -181,7 +168,6 @@
         m5_work_end_addr(0,0);                 \
         m5_dump_stats_addr(0,0);               \
     }
-#endif
 #else
 #  define GOTO_SIM()                    /* nothing */
 #  define GOTO_REAL()                   /* nothing */
@@ -401,7 +387,7 @@
 #include "abort_handlers.h"
 #include "env_globals.h"
 #if ENABLE_M5_TRIGGER
-#include "include/gem5/m5ops_addr.h"
+#include "include/gem5/m5ops.h"
 #include "util/m5/src/m5_mmap.h"
 #endif
 
