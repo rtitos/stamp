@@ -159,9 +159,37 @@
 #  define MAIN_RETURN(val)              return val
 
 #if ENABLE_M5_TRIGGER
-#  define GOTO_SIM()  {                         \
-        m5_work_begin_addr(0,0);                \
-        m5_reset_stats_addr(0,0);               \
+// IMPORTANT NOTICE (support for fast-forward using KVM): See
+// $(GEM5_ROOT)/src/sim/System.py for documentation. Basically, we
+// need to ensure that we checkpoint the state of the guest
+// immediately after the execution of m5_work_begin (GOTO_SIM), which
+// is not always the case when running with KVM. To ensure proper
+// checkpointing when running in the simulator (we can tell by looking
+// at the return value of m5_sum_addr), we enter a "dummy loop" that
+// may cause the program to "spin" indefinitely, depending on the
+// value returned by the m5_sum for a specific set of arguments
+// (HEXSPEAK below). When running in real hardware, we point m5_mem to
+// a zero-filled memory region so that all loads to that area are safe
+// and simply return 0.  (see init_m5_mem() in
+// $(GEM5_ROOT)/gem5_path/benchmarks/benchmarks-htm/libs/handlers/abort_handlers.c)
+
+// When running in gem5, the command-line option
+// 'checkpoint-m5sum-kvm-hack' will determine whether the return value
+// of m5_sum is tweaked (0) instead of the expected sum of arguments
+
+// NOTE: Must keep HEXSPEAK arg values passed to m5_sum in sync with
+// those in $(GEM5_ROOT)/src/sim/pseudo_inst.cc (sanity checks)
+#  define KVM_HACK_CHECKPOINT_SYNC()  {                         \
+        if (m5_sum_addr(1,2,3,4,5,6)) {                         \
+            while (m5_sum_addr(0xCAFE,0xBEEF, 0xDEAD,           \
+                               0xBABE, 0xBAAD, 0xC0DE) == 0);   \
+        }                                                       \
+    }
+
+#  define GOTO_SIM()  {                              \
+        m5_work_begin_addr(0,0);                     \
+        KVM_HACK_CHECKPOINT_SYNC();                  \
+        m5_reset_stats_addr(0,0);                    \
     }
 
 #  define GOTO_REAL()  {                      \
