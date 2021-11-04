@@ -154,52 +154,13 @@
 #else /* !SIMULATOR */
 
 #  include <stdio.h>
+#include "m5iface.h"
 
 #  define MAIN(argc, argv)              int main (int argc, char** argv)
 #  define MAIN_RETURN(val)              return val
 
-#if ENABLE_M5_TRIGGER
-// IMPORTANT NOTICE (support for fast-forward using KVM): See
-// $(GEM5_ROOT)/src/sim/System.py for documentation. Basically, we
-// need to ensure that we checkpoint the state of the guest
-// immediately after the execution of m5_work_begin (GOTO_SIM), which
-// is not always the case when running with KVM. To ensure proper
-// checkpointing when running in the simulator (we can tell by looking
-// at the return value of m5_sum_addr), we enter a "dummy loop" that
-// may cause the program to "spin" indefinitely, depending on the
-// value returned by the m5_sum for a specific set of arguments
-// (HEXSPEAK below). When running in real hardware, we point m5_mem to
-// a zero-filled memory region so that all loads to that area are safe
-// and simply return 0.  (see init_m5_mem() in
-// $(GEM5_ROOT)/gem5_path/benchmarks/benchmarks-htm/libs/handlers/abort_handlers.c)
-
-// When running in gem5, the command-line option
-// 'checkpoint-m5sum-kvm-hack' will determine whether the return value
-// of m5_sum is tweaked (0) instead of the expected sum of arguments
-
-// NOTE: Must keep HEXSPEAK arg values passed to m5_sum in sync with
-// those in $(GEM5_ROOT)/src/sim/pseudo_inst.cc (sanity checks)
-#  define KVM_HACK_CHECKPOINT_SYNC()  {                         \
-        if (m5_sum_addr(1,2,3,4,5,6)) {                         \
-            while (m5_sum_addr(0xCAFE,0xBEEF, 0xDEAD,           \
-                               0xBABE, 0xBAAD, 0xC0DE) == 0);   \
-        }                                                       \
-    }
-
-#  define GOTO_SIM()  {                              \
-        m5_work_begin_addr(0,0);                     \
-        KVM_HACK_CHECKPOINT_SYNC();                  \
-        m5_reset_stats_addr(0,0);                    \
-    }
-
-#  define GOTO_REAL()  {                      \
-        m5_work_end_addr(0,0);                 \
-        m5_dump_stats_addr(0,0);               \
-    }
-#else
-#  define GOTO_SIM()                    /* nothing */
-#  define GOTO_REAL()                   /* nothing */
-#endif
+#  define GOTO_SIM()   simBeginRegionOfInterest()
+#  define GOTO_REAL()  simEndRegionOfInterest()
 
 #  define IS_IN_SIM()                   (0)
 
@@ -216,6 +177,7 @@
 // factor" is specified
 #define MAIN_MEMORY_SIZE_BYTES (2*(1L<<30))
 
+#  include "memory.h"
 #define P_MEMORY_STARTUP(numThread)                                     \
     {                                                                   \
         bool_t status;                                                  \
@@ -413,11 +375,7 @@
 #  include "thread.h"
 #  include "types.h"
 #include "abort_handlers.h"
-#include "env_globals.h"
-#if ENABLE_M5_TRIGGER
-#include "include/gem5/m5ops.h"
-#include "util/m5/src/m5_mmap.h"
-#endif
+#include "m5iface.h"
 
 extern _tm_thread_context_t *thread_contexts;
 
@@ -457,18 +415,8 @@ extern _tm_thread_context_t *thread_contexts;
 #  define TM_EARLY_RELEASE(addr)  panic("Early release not supported ")
 
 
-#if ENABLE_M5_TRIGGER
-#if defined(CALL_TYPE_IS_DEFAULT)
-#  define SIM_WORK_BEGIN()  m5_work_begin(0,0)
-#  define SIM_WORK_END()    m5_work_end(0,0)
-#else
-#  define SIM_WORK_BEGIN()  m5_work_begin_addr(0,0)
-#  define SIM_WORK_END()    m5_work_end_addr(0,0)
-#endif
-#else
-#  define SIM_WORK_BEGIN()
-#  define SIM_WORK_END()
-#endif
+#  define SIM_WORK_BEGIN()  simWorkBegin()
+#  define SIM_WORK_END()    simWorkEnd()
 
 #define ABORT_CODE_EXPLICIT 65535
 
@@ -649,6 +597,8 @@ extern _tm_thread_context_t *thread_contexts;
 #  define TM_THREAD_ENTER()             /* nothing */
 #  define TM_THREAD_EXIT()              /* nothing */
 
+#  define SIM_WORK_BEGIN()              /* nothing */
+
 #  ifdef SIMULATOR
 
 #    include "thread.h"
@@ -667,9 +617,9 @@ extern _tm_thread_context_t *thread_contexts;
 
 #  endif /* !SIMULATOR */
 
-#  define TM_BEGIN()                    /* nothing */
+#  define TM_BEGIN(tag)                    /* nothing */
 #  define TM_BEGIN_RO()                 /* nothing */
-#  define TM_END()                      /* nothing */
+#  define TM_END(tag)                      /* nothing */
 #  define TM_RESTART()                  assert(0)
 
 #  define TM_EARLY_RELEASE(var)         /* nothing */

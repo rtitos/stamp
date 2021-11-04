@@ -16,6 +16,8 @@ default: $(PROG)
 clean:
 	$(RM) $(OBJS) $(PROG) $(OUTPUT)
 
+OBJS += ../common/simempty.o
+
 $(PROG): $(OBJS)
 	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(PROG)
 

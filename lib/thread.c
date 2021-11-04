@@ -147,8 +147,8 @@ thread_startup (long numThread)
     assert(global_threads);
 
     /* Set of all used cpus*/
-    cpu_set_t cpuset;
 #if defined (ENABLE_PTHREAD_SET_AFFINITY)
+    cpu_set_t cpuset;
         /* Set up cpu affinity for currently running thread */
         pthread_t thread = pthread_self();
         CPU_ZERO(&cpuset);
@@ -365,9 +365,9 @@ thread_barrier_wait()
     long threadId = thread_getId();
 #endif /* !SIMULATOR */
 
-    annotateBarrierRegionBegin();
+    simBarrierBegin();
     THREAD_BARRIER(global_barrierPtr, threadId);
-    annotateBarrierRegionEnd();
+    simBarrierEnd();
 }
 
 
