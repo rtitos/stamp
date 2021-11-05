@@ -9,7 +9,6 @@
 
 # Need symlink to gem5 in STAMP root directory to locate handlers/m5 objects
 GEM5_ROOT := $(realpath ../gem5)
-HANDLERS  := $(GEM5_ROOT)/gem5_path/benchmarks/benchmarks-htm/libs/handlers
 
 ifeq ($(GEM5_ROOT),)
 $(error GEM5_ROOT not set)
@@ -23,9 +22,16 @@ endif
 # ARCH set via make ARCH=xxx when building this library as part of the
 # build process of STAMP (see common/Defines.common.mk)
 
+M5_ARCH = ${ARCH}
+
 ifeq ($(ARCH),aarch64)
 
+# gcc 7.5 cross installed from Ubuntu packages
 GCC_PREFIX := aarch64-linux-gnu-
+
+# gcc 10.2 cross built from source (recall: export PATH=/opt/cross/bin:$PATH)
+#GCC_PREFIX := aarch64-linux-
+M5_ARCH = arm64
 
 else ifeq ($(ARCH),x86)
 
@@ -35,14 +41,18 @@ else ifeq ($(ARCH),riscv)
 
 GCC_PREFIX := riscv64-unknown-linux-gnu-
 CFLAGS	+= -fcommon
+
 endif
 
+HANDLERS  := $(GEM5_ROOT)/gem5_path/benchmarks/benchmarks-htm/libs/handlers
+M5        := $(GEM5_ROOT)/util/m5/build/$(M5_ARCH)/out
 
 CC       := $(GCC_PREFIX)gcc
 CFLAGS   +=  -Wall -pthread
 CFLAGS   += -O3
 CFLAGS   += -I$(LIB)
 CFLAGS   += -I$(HANDLERS)
+CFLAGS   += -I$(M5)
 CFLAGS   += -I$(GEM5_ROOT)
 CPP      := $(GCC_PREFIX)g++
 LD       := $(GCC_PREFIX)g++
@@ -50,7 +60,6 @@ LIBS     += -lpthread
 LDFLAGS  += -static
 
 CFLAGS += -I$(GEM5_ROOT)/include
-LDFLAGS += -L$(GEM5_ROOT)/util/m5/build/$(ARCH)/out
 
 
 # Remove these files when doing clean

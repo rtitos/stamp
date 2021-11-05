@@ -10,7 +10,6 @@
 # ==============================================================================
 
 CFLAGS   += -DHTM -fgnu-tm
-CFLAGS   += -DENABLE_M5_TRIGGER
 
 ifeq ($(ARCH),riscv)
 # M5 ops call type uses default interface (invalid inst)
@@ -24,7 +23,12 @@ CFLAGS   += -D_GNU_SOURCE
 
 CPPFLAGS := $(CFLAGS)
 
+LIBM5 := $(M5)/libm5.a
+LIBABORTHANDLERS := $(HANDLERS)/libaborthandlers.a
+
 LDFLAGS += -L$(HANDLERS)
+LDFLAGS += -L$(M5)
+
 LIBS     += -laborthandlers -lpthread -lm5
 
 BINARY_FILENAME = $(PROG)$(SUFFIX)
@@ -45,9 +49,15 @@ clean:
 clean_objs:
 	$(RM) $(OBJS) $(OUTPUT)
 
-$(BINARY_FILENAME): $(OBJS)
+$(BINARY_FILENAME): $(OBJS)  $(LIBM5) $(LIBABORTHANDLERS)
+	$(LD) $(LDFLAGS) $(OBJS) $(LIBS) -o $(BINARY_FILENAME)
+
+
+$(LIBABORTHANDLERS):
 	make ARCH='$(ARCH)' HANDLER='$(HANDLER)' -C $(HANDLERS)
-	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(BINARY_FILENAME)
+
+$(LIBM5):
+	cd $(GEM5_ROOT)/util/m5 && scons build/$(M5_ARCH)/out/m5
 
 include ../common/Makefile.common
 
