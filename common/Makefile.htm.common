@@ -56,8 +56,22 @@ $(BINARY_FILENAME): $(OBJS)  $(LIBM5) $(LIBABORTHANDLERS)
 $(LIBABORTHANDLERS):
 	make ARCH='$(ARCH)' HANDLER='$(HANDLER)' -C $(HANDLERS)
 
+ifeq ($(ARCH),riscv)
+M5_ARCH=riscv
+else
+ifeq ($(ARCH),aarch64)
+M5_ARCH=arm64
+else
+ifeq ($(ARCH),x86) # TODO: why not x86_64 here?
+M5_ARCH=x86
+else
+$(error M5_ARCH unknown)
+endif
+endif
+endif
+
 $(LIBM5):
-	cd $(GEM5_ROOT)/util/m5 && scons build/$(M5_ARCH)/out/m5
+	cd $(GEM5_ROOT)/util/m5 && scons $(M5_ARCH).CROSS_COMPILE=${GCC_PREFIX} build/$(M5_ARCH)/out/m5
 
 include ../common/Makefile.common
 
