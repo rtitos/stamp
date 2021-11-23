@@ -26,8 +26,12 @@ M5_ARCH = ${ARCH}
 
 ifeq ($(ARCH),aarch64)
 
+ifdef AARCH64_CROSS_GCC_PREFIX
+GCC_PREFIX := ${AARCH64_CROSS_GCC_PREFIX}
+else
 # gcc 7.5 cross installed from Ubuntu packages
 GCC_PREFIX := aarch64-linux-gnu-
+endif
 
 # gcc 10.2 cross built from source (recall: export PATH=/opt/cross/bin:$PATH)
 #GCC_PREFIX := aarch64-linux-
@@ -35,11 +39,15 @@ M5_ARCH = arm64
 
 else ifeq ($(ARCH),x86)
 
-GCC_PREFIX :=
+GCC_PREFIX := ${X86_CROSS_GCC_PREFIX}
 
 else ifeq ($(ARCH),riscv)
 
+ifdef RISCV_CROSS_GCC_PREFIX
+GCC_PREFIX := ${RISCV_CROSS_GCC_PREFIX}
+else
 GCC_PREFIX := riscv64-unknown-linux-gnu-
+endif
 CFLAGS	+= -fcommon
 
 endif
