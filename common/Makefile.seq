@@ -9,19 +9,29 @@
 # Rules
 # ==============================================================================
 
+ifndef ARCH
+$(error ARCH not set)
+endif
+
+SUFFIX=.seq
+
+$(info $$ARCH is [${ARCH}], $$SUFFIX is ${SUFFIX}])
+
+BINARY_FILENAME = $(PROG).$(ARCH)$(SUFFIX)
+
 .PHONY: default
-default: $(PROG)
+default: $(BINARY_FILENAME)
+
+include ../common/Makefile.common
 
 .PHONY: clean
 clean:
-	$(RM) $(OBJS) $(PROG) $(OUTPUT)
+	$(RM) $(OBJS) $(BINARY_FILENAME) $(OUTPUT)
 
-OBJS += ../common/simempty.o
+OBJS += build/$(ARCH)/libstamp-simempty$(SUFFIX).o
 
-$(PROG): $(OBJS)
-	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(PROG)
-
-include ../common/Makefile.common
+$(BINARY_FILENAME): $(OBJS)
+	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(BINARY_FILENAME)
 
 
 # ==============================================================================

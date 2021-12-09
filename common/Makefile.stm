@@ -19,17 +19,25 @@ LIBS     += -ltl2
 # Rules
 # ==============================================================================
 
+ifndef ARCH
+$(error ARCH not set)
+endif
+
+SUFFIX=.stm
+
+$(info $$ARCH is [${ARCH}], $$SUFFIX is ${SUFFIX}])
+
+BINARY_FILENAME = $(PROG).$(ARCH)$(SUFFIX)
+
 .PHONY: default
-default: $(PROG)
+default: $(BINARY_FILENAME)
 
 .PHONY: clean
 clean:
-	$(RM) $(OBJS) $(PROG) $(OUTPUT)
+	$(RM) $(OBJS) $(BINARY_FILENAME) $(OUTPUT)
 
-$(PROG): $(OBJS)
-	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(PROG)
-
-include ../common/Makefile.common
+$(BINARY_FILENAME): $(OBJS)
+	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(BINARY_FILENAME)
 
 
 # ==============================================================================

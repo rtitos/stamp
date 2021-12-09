@@ -8,7 +8,7 @@ include ../common/Defines.common.mk
 include ./Defines.common.mk
 
 SUFFIX=.htm.sgl
-HANDLER = -DHANDLER_SGL
+HANDLER = sgl
 
 include ../common/Makefile.htm.common
 

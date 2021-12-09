@@ -22,8 +22,6 @@ endif
 # ARCH set via make ARCH=xxx when building this library as part of the
 # build process of STAMP (see common/Defines.common.mk)
 
-M5_ARCH = ${ARCH}
-
 ifeq ($(ARCH),aarch64)
 
 ifdef AARCH64_CROSS_GCC_PREFIX
@@ -35,13 +33,18 @@ endif
 
 # gcc 10.2 cross built from source (recall: export PATH=/opt/cross/bin:$PATH)
 #GCC_PREFIX := aarch64-linux-
+
 M5_ARCH = arm64
 
-else ifeq ($(ARCH),x86)
+else ifeq ($(ARCH),x86_64)
+
+M5_ARCH = x86
 
 GCC_PREFIX := ${X86_CROSS_GCC_PREFIX}
 
 else ifeq ($(ARCH),riscv)
+
+M5_ARCH = riscv
 
 ifdef RISCV_CROSS_GCC_PREFIX
 GCC_PREFIX := ${RISCV_CROSS_GCC_PREFIX}
@@ -52,14 +55,14 @@ CFLAGS	+= -fcommon
 
 endif
 
-HANDLERS  := $(GEM5_ROOT)/gem5_path/benchmarks/benchmarks-htm/libs/handlers
+LIBABORTHANDLER_DIR := $(GEM5_ROOT)/gem5_path/benchmarks/benchmarks-htm/libs/handlers
 M5        := $(GEM5_ROOT)/util/m5/build/$(M5_ARCH)/out
 
 CC       := $(GCC_PREFIX)gcc
 CFLAGS   +=  -Wall -pthread
 CFLAGS   += -O3
 CFLAGS   += -I$(LIB)
-CFLAGS   += -I$(HANDLERS)
+CFLAGS   += -I$(LIBABORTHANDLER_DIR)
 CFLAGS   += -I$(M5)
 CFLAGS   += -I$(GEM5_ROOT)
 CPP      := $(GCC_PREFIX)g++

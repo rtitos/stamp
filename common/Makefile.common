@@ -4,13 +4,19 @@
 #
 # ==============================================================================
 
+OBJS := $(foreach f,$(SRCS:.c=$(SUFFIX).o),$(subst ../lib/,libstamp-,build/$(ARCH)/$(f)))
 
-%.o: %.c *.h
+build/$(ARCH)/%$(SUFFIX).o: %.c *.h | build/$(ARCH)/
 	$(CC) $(CFLAGS) -c $< -o $@
 
-%.o: %.cpp *.h
+build/$(ARCH)/libstamp-%$(SUFFIX).o: ../lib/%.c | build/$(ARCH)/
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/$(ARCH)/%$(SUFFIX).o: %.cpp *.h | build/$(ARCH)/
 	$(CPP) $(CPPFLAGS) -c $< -o $@
 
+build/$(ARCH)/:
+	mkdir -p $@
 
 # ==============================================================================
 #

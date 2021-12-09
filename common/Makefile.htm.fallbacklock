@@ -8,7 +8,7 @@ include ../common/Defines.common.mk
 include ./Defines.common.mk
 
 SUFFIX=.htm.fallbacklock
-HANDLER = -DHANDLER_FALLBACKLOCK
+HANDLER = fallbacklock
 
 include ../common/Makefile.htm.common
 

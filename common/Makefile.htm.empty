@@ -8,7 +8,7 @@ include ../common/Defines.common.mk
 include ./Defines.common.mk
 
 SUFFIX=.htm.empty
-HANDLER = -DHANDLER_EMPTY
+HANDLER = empty
 
 include ../common/Makefile.htm.common
 

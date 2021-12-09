@@ -28,24 +28,32 @@ LIBS        += $(LIBOTM_STM)
 # Rules
 # ==============================================================================
 
+ifndef ARCH
+$(error ARCH not set)
+endif
+
+SUFFIX=.stm.otm
+
+$(info $$ARCH is [${ARCH}], $$SUFFIX is ${SUFFIX}])
+
+BINARY_FILENAME = $(PROG).$(ARCH)$(SUFFIX)
+
 .PHONY: default
-default: $(PROG)
+default: $(BINARY_FILENAME)
 
 .PHONY: clean
 clean:
-	$(RM) $(OBJS) $(PROG) $(OUTPUT)
+	$(RM) $(OBJS) $(BINARY_FILENAME) $(OUTPUT)
 
-.PHONY: $(PROG)
-$(PROG): CFLAGS += $(CFLAGS_OTM)
-$(PROG): CFLAGS += -ftl2
-$(PROG): $(OBJS)
-	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(PROG)
+.PHONY: $(BINARY_FILENAME)
+$(BINARY_FILENAME): CFLAGS += $(CFLAGS_OTM)
+$(BINARY_FILENAME): CFLAGS += -ftl2
+$(BINARY_FILENAME): $(OBJS)
+	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(BINARY_FILENAME)
 
 .PHONY: $(PROG)-ltm
 $(PROG)-ltm: $(OBJS)
 	$(LD) $(LDFLAGS) $^ $(LIBS) -o $(PROG)
-
-include ../common/Makefile.common
 
 
 # ==============================================================================

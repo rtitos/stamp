@@ -1,0 +1,54 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+SCRIPT_COMMAND="$0"
+set -o nounset
+set -o pipefail
+set -o errexit
+trap 'echo "$SCRIPT_COMMAND: error $? at line $LINENO"' ERR
+
+# TODO: check that gem5 link exists.
+if [[ ! -L "$SCRIPT_DIR/gem5" || ! -d "$SCRIPT_DIR/gem5/" ]] ; then
+    echo "Symlink «$SCRIPT_DIR/gem5» not found."
+fi
+
+ARCHS=(
+    "x86_64"
+    "aarch64"
+#    "riscv"
+)
+
+BENCHMARKS=(
+    "bayes"
+    "genome"
+    "intruder"
+    "kmeans"
+    "labyrinth"
+    "ssca2"
+    "vacation"
+    "yada"
+)
+
+SUFIXES=(
+    "seq"
+    "htm.empty"
+    "htm.fallbacklock"
+    "htm.fallbacklock2phase"
+    "htm.sgl"
+)
+
+for a in "${ARCHS[@]}" ; do
+    for b in "${BENCHMARKS[@]}" ; do
+        for s in "${SUFIXES[@]}" ; do
+            if [[ "$a" == "aarch64" && "$s" == "htm.fallbacklock2phase" ]] ; then
+                echo "Skipping Make for $b.$a.$s (TODO)"
+            else
+                (
+                    echo "Make for $b.$a.$s"
+                    cd "$SCRIPT_DIR/$b" && make -f "Makefile.$s" "ARCH=$a" "$@"
+                )
+            fi
+        done
+    done
+done
+
