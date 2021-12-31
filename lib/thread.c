@@ -365,9 +365,8 @@ thread_barrier_wait()
     long threadId = thread_getId();
 #endif /* !SIMULATOR */
 
-    simBarrierBegin();
+
     THREAD_BARRIER(global_barrierPtr, threadId);
-    simBarrierEnd();
 }
 
 
