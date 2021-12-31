@@ -126,7 +126,12 @@ extern "C" {
 #  define THREAD_BARRIER_T                  thread_barrier_t
 #  define THREAD_BARRIER_ALLOC(N)           thread_barrier_alloc(N)
 #  define THREAD_BARRIER_INIT(bar, N)       thread_barrier_init(bar)
-#  define THREAD_BARRIER(bar, tid)          thread_barrier(bar, tid)
+#  define THREAD_BARRIER(bar, tid)   { \
+    simBarrierBegin();                 \
+    thread_barrier(bar, tid);          \
+    simBarrierEnd();                   \
+    }
+
 #  define THREAD_BARRIER_FREE(bar)          thread_barrier_free(bar)
 #endif /* !SIMULATOR */
 
