@@ -3,3 +3,6 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 cd "${SCRIPT_DIR}/kmeans/inputs/"
 gunzip *gz
+
+cd "${SCRIPT_DIR}/yada/inputs/"
+gunzip *gz
